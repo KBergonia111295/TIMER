@@ -1,0 +1,132 @@
+/**
+  NumberSpinner
+  
+  Component that maintains a number value in its state. 
+  
+  It will notifies the parent of plus/minus incremental changes to it.
+*/
+class NumberSpinner extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      numVal: this.props.numVal
+    }
+    this.handleDownClick = this.handleDownClick.bind(this);
+    this.handleUpClick = this.handleUpClick.bind(this);
+  }
+  
+  propagateStateChange(numVal) {
+    if (this.state.numVal > 1 && this.state.numVal < 100) {
+      this.setState({
+        numVal: numVal
+      }, () => {
+         console.log(`Updated NumVal: ${this.state.numVal}`);
+         this.props.handleInputChange(this.state.numVal);
+      });
+    }
+  }
+
+  handleDownClick() {
+    this.propagateStateChange(this.state.numVal - 1);
+  }
+
+  handleUpClick() {
+     this.propagateStateChange(this.state.numVal + 1);
+  }
+
+  render() {
+    return <div className="input-group number-spinner">
+				<span className="input-group-btn">
+					<button className="btn btn-default" onClick={this.handleDownClick}><span className="glyphicon glyphicon-minus"></span></button>
+				</span>
+				<input type="text" className="form-control text-center" value={this.state.numVal} />
+				<span className="input-group-btn">
+					<button className="btn btn-default" onClick={this.handleUpClick}><i className="glyphicon glyphicon-plus"></i></button>
+				</span>
+			</div>
+  }
+}
+
+/**
+  Timer component
+  
+  Maintains the following state properties:
+    countdownTime: {Number}, the time in seconds for the timer to countdown to zero
+    secondsLeft: {Number}, the number of seconds before a zero time is reached
+    hasRun: {Boolean}, true if the start button has been pressed at least once
+*/
+class Timer extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      countDownTime: this.props.secondsLeft,
+      secondsLeft: this.props.secondsLeft,
+      hasRun: false
+    };
+    this.handleResetClick = this.handleResetClick.bind(this);
+    this.handleStartClick = this.handleStartClick.bind(this);
+    this.handleInputChange = this.handleInputChange.bind(this);
+  }
+
+  handleInputChange(countDownTime) {
+     console.log(`App hasRun: ${this.state.hasRun}`);
+    if(this.state.hasRun === false) {
+      this.setState({countDownTime, secondsLeft: countDownTime});
+    } else {
+      console.log(`App handle input change: ${countDownTime}`);
+      this.setState({countDownTime});
+    }
+  }
+
+  handleStartClick() {
+    this.setState({
+      secondsLeft: this.state.countDownTime
+    });
+    this.incrementer = setInterval(() => {
+      this.setState({
+        secondsLeft: (this.state.secondsLeft - 1)
+      });
+      if (this.state.secondsLeft === 0) {
+        clearInterval(this.incrementer);
+      }
+    }, 1000);
+    this.setState({
+      incrementer: this.incrementer,
+      hasRun: true
+    });
+  }
+
+  handleResetClick(event) {
+    this.setState({
+      secondsLeft: this.state.countDownTime
+    });
+    clearInterval(this.incrementer);
+    this.incrementer = setInterval(() => {
+      this.setState({
+        secondsLeft: (this.state.secondsLeft - 1)
+      });
+      if (this.state.secondsLeft === 0) {
+        clearInterval(this.incrementer);
+      }
+    }, 1000);
+    this.setState({
+      incrementer: this.incrementer
+    });
+  }
+
+  render() {
+    return <div>
+        <h1>React.js Timer</h1>
+        <NumberSpinner numVal={this.state.secondsLeft} handleInputChange={this.handleInputChange}/>
+        <h3>Time Remaining (sec)</h3>
+        <div id="time-remaining">{this.state.secondsLeft}</div>
+       {this.state.hasRun === false
+        ?  <button type="button" onClick={this.handleStartClick}>Start</button>
+        : <button type="button" onClick={this.handleResetClick}>Reset</button>
+      }
+     </div>;
+  }
+}
+
+ReactDOM.render(
+  <Timer secondsLeft={10} />, document.querySelector("#app"));
